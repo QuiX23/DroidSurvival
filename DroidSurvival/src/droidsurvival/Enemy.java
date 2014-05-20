@@ -1,19 +1,19 @@
 package droidsurvival;
 
 import java.awt.Rectangle;
+import java.util.Random;
 
 import droidsurvival.StartingClass.GameState;
 
 public class Enemy {
 
-	private int  power, speedX=0, speedY=0,speed=3, centerX,
-			centerY;
+	private int power, speedX = 0, speedY = 0, speed = 3, centerX, centerY;
 	private double angle;
-	public int health = 4;
-	
-	public Rectangle r = new Rectangle(0,0,0,0);
-	
-	
+	protected boolean state;
+	public int health = 2;
+
+	public Rectangle r = new Rectangle(0, 0, 0, 0);
+
 	public int getSpeed() {
 		return speed;
 	}
@@ -22,36 +22,36 @@ public class Enemy {
 		this.speed = speed;
 	}
 
-
 	public void update(int pointX, int pointY) {
 		
-		angle=Angle.getAngle(centerX, centerY, pointX, pointY);
-		
-		double a=(double)speed*Math.sin(Math.toRadians(angle));
-		speedY=(int)a;
-		speedX=(int)Math.sqrt(Math.pow((double)speed, 2)-Math.pow(a, 2));
-		System.out.println(angle);		
-		
-			if(angle<90)centerX += speedX;
-			else centerX -= speedX;
-			centerY -= speedY;
-			
-			r.setBounds(centerX , centerY, 40, 40);
-			
+		if (health==0)die();
 
-				checkCollision();
+		angle = Angle.getAngle(centerX, centerY, pointX, pointY);
 
-		
-		
+		double a = (double) speed * Math.sin(Math.toRadians(angle));
+		speedY = (int) a;
+		speedX = (int) Math.sqrt(Math.pow((double) speed, 2) - Math.pow(a, 2));
+		//System.out.println(angle);
+
+		if (angle < 90)
+			centerX += speedX;
+		else
+			centerX -= speedX;
+		centerY -= speedY;
+
+		r.setBounds(centerX, centerY, 40, 40);
+
+		checkCollision();
+
 	}
-	
+
 	private void checkCollision() {
-		if (r.intersects(Character.rect)){
-			System.out.println("collision");
-			StartingClass.state=GameState.Dead;
-			
-			}
+		if (r.intersects(Character.rect)) {
+			//System.out.println("collision");
+			StartingClass.state = GameState.Dead;
+
 		}
+	}
 
 	public int getPower() {
 		return power;
@@ -102,6 +102,15 @@ public class Enemy {
 	}
 
 	public void die() {
+		state=false;
+	}
+
+	public boolean isState() {
+		return state;
+	}
+
+	public void setState(boolean state) {
+		this.state = state;
 	}
 
 	public void attack() {

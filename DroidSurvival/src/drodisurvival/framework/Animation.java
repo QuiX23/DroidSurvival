@@ -4,21 +4,26 @@ import java.awt.Image;
 import java.util.ArrayList;
 
 
-public class Animation {
-	private ArrayList frames;
+public class Animation implements Cloneable{
+	private ArrayList <AnimFrame> frames;
 	private int currentFrame;
 	private long animTime; // long takes up more memory than int but can hold
 							// more accurate numbers.
 	private long totalDuration;
 
 	public Animation() {
-		frames = new ArrayList();
+		frames = new ArrayList <AnimFrame> () ;
 		totalDuration = 0;
 
 		synchronized (this) {
 			animTime = 0;
 			currentFrame = 0;
 		}
+	}
+	
+	@Override
+	public Object clone() throws CloneNotSupportedException {
+		return super.clone();
 	}
 
 	public synchronized void addFrame(Image image, long duration) {

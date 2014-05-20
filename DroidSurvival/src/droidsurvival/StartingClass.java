@@ -18,28 +18,40 @@ import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Random;
+
+import drodisurvival.framework.Animation;
 
 public class StartingClass extends Applet implements Runnable, KeyListener,
 		MouseListener, MouseMotionListener {
 
 	enum GameState {
-		Running, Dead
+		Running, Dead, Menu
 	}
 
-	static GameState state = GameState.Running;
-
+	static GameState state = GameState.Menu;
+	public static MenuScreen menu = new MenuScreen();
+	Random generator = new Random();
 	public static Character character;
-	public static Droid droid;
+	public static ArrayList<Droid> droids ;
+	public static ArrayList<Corpses> corpses ;
 	public static Bonus bonus;
-	private Image image, background, player, dd, bon;
+	private Image image, background, playerStand, playerLeft, playerRight, dd,
+			droidDead, droidLeft, droidRight, currentSprite, bon,menuBack;
+	public static ArrayList<Animation> danims ;
+	private Animation anim, danim;
+	private int frameCount;
 	private Graphics second;
 	private URL base;
 	private int mouseX, mouseY;
 	public static int score = 0;
 	private Font font = new Font(null, Font.BOLD, 30);
+	private Font fontMenu = new Font(null, Font.BOLD, 80);
+	private Thread thread ;
 
 	@Override
 	public void init() {
+		frameCount = 0;
 
 		setSize(800, 480);
 		setBackground(Color.BLACK);
@@ -48,35 +60,62 @@ public class StartingClass extends Applet implements Runnable, KeyListener,
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		Frame frame = (Frame) this.getParent().getParent();
-		frame.setTitle("Droid Survival");
+		frame.setTitle("Zombie Survival");
 
 		try {
 			base = getDocumentBase();
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
-
+		// test
 		// Image Setups
-		player = getImage(base, "data/character.png");
-		dd = getImage(base, "data/enemy.png");
+		playerStand = getImage(base, "data/graczstoi.png");
+		playerLeft = getImage(base, "data/graczlewa.png");
+		playerRight = getImage(base, "data/graczprawa.png");
+
+		anim = new Animation();
+		anim.addFrame(playerStand, 50);
+		anim.addFrame(playerLeft, 50);
+		anim.addFrame(playerRight, 50);
+
+		droidRight = getImage(base, "data/zombieprawa.png");
+		droidDead = getImage(base, "data/deadzombie.png");
+		droidLeft = getImage(base, "data/zombielewa.png");
+		dd = getImage(base, "data/zombiestoi.png");
+
+		danim = new Animation();
+		danim.addFrame(dd, 100);
+		danim.addFrame(droidRight, 100);
+		danim.addFrame(dd, 100);
+		danim.addFrame(droidLeft, 100);
+
 		background = getImage(base, "data/background.png");
+		menuBack = getImage(base, "data/menu.png");
+		
 		bon = getImage(base, "data/bonus.png");
+		
+		
 
 	}
 
 	@Override
 	public void start() {
+		droids = new ArrayList<Droid>();
+		danims = new ArrayList<Animation>();
+		corpses = new ArrayList<Corpses>();
+
 		character = new Character();
-		droid = new Droid(20, 20);
+
+
 		bonus = new Bonus(70, 70);
 
-		Thread thread = new Thread(this);
+		thread = new Thread(this);
 		thread.start();
 	}
 
 	@Override
 	public void stop() {
-		// TODO Auto-generated method stub
+		thread.stop();
 	}
 
 	@Override
@@ -88,11 +127,33 @@ public class StartingClass extends Applet implements Runnable, KeyListener,
 	public void run() {
 		if (state == GameState.Running) {
 			while (true) {
+				// System.out.println(danims.get(1).size());
+
+				frameCount = (frameCount + 1) % 240;
+				newEnemy();
+
 				character.update(mouseX, mouseY);
-				droid.update(character.getCenterX(), character.getCenterY());
+
+				currentSprite = anim.getImage();
+
 				bonus.update();
 
-				ArrayList projectiles = character.getProjectiles();
+				for (int i = 0; i < droids.size(); i++) {
+					if (!droids.get(i).isState()) {
+						danims.remove(i);
+						corpses.add(new Corpses(droids.get(i).getCenterX(),
+								droids.get(i).getCenterY(), droids.get(i)
+										.getAngle() + 180));
+						droids.remove(i);
+					}
+					droids.get(i).update(character.getCenterX(),
+							character.getCenterY());
+
+					danims.get(i).update(5);
+
+				}
+
+				ArrayList<Projectile> projectiles = character.getProjectiles();
 				for (int i = 0; i < projectiles.size(); i++) {
 					Projectile p = (Projectile) projectiles.get(i);
 					if (p.isVisible() == true) {
@@ -102,6 +163,7 @@ public class StartingClass extends Applet implements Runnable, KeyListener,
 					}
 				}
 
+				animate();
 				repaint();
 				try {
 					Thread.sleep(17);
@@ -110,6 +172,65 @@ public class StartingClass extends Applet implements Runnable, KeyListener,
 				}
 			}
 		}
+
+	}
+
+	public void animate() {
+		if (character.isDown() || character.isLeft() || character.isRight()
+				|| character.isUp())
+			anim.update(5);
+		else
+			currentSprite = playerStand;
+		// danim.update(3);
+	}
+
+	public void newEnemy() {
+		switch (frameCount) {
+		case 0: {
+			droids.add(new Droid(-40, -40));
+			try {
+				danims.add((Animation) danim.clone());
+			} catch (CloneNotSupportedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			break;
+		}
+		case 60: {
+			droids.add(new Droid(-40, 640));
+			try {
+				danims.add((Animation) danim.clone());
+			} catch (CloneNotSupportedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			break;
+		}
+
+		case 120: {
+			droids.add(new Droid(840, -40));
+			try {
+				danims.add((Animation) danim.clone());
+			} catch (CloneNotSupportedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			break;
+		}
+
+		case 180: {
+			droids.add(new Droid(840, 640));
+			try {
+				danims.add((Animation) danim.clone());
+			} catch (CloneNotSupportedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			break;
+
+		}
+		}
+
 	}
 
 	@Override
@@ -117,31 +238,46 @@ public class StartingClass extends Applet implements Runnable, KeyListener,
 		if (state == GameState.Running) {
 			g.drawImage(background, 0, 0, this);
 
-			rotateImage(player, character.getCenterX(), character.getCenterY(),
-					character.getAngle(), g);
-			rotateImage(dd, droid.getCenterX(), droid.getCenterY(),
-					droid.getAngle(), g);
+			for (int i = 0; i < corpses.size(); i++) {
+				rotateImage(droidDead, corpses.get(i).getX(), corpses.get(i)
+						.getY(), corpses.get(i).getAngle(), g);
+				System.out.println(corpses.get(i).getAngle());
+			}
+
+			rotateImage(currentSprite, character.getCenterX(),
+					character.getCenterY(), character.getAngle(), g);
 
 			g.drawImage(bon, bonus.getCenterX(), bonus.getCenterY(), this);
 
-			ArrayList projectiles = character.getProjectiles();
+			ArrayList<Projectile> projectiles = character.getProjectiles();
 			for (int i = 0; i < projectiles.size(); i++) {
 				Projectile p = (Projectile) projectiles.get(i);
 				g.setColor(Color.YELLOW);
 				g.fillRect(p.getX(), p.getY(), 10, 5);
 			}
 
+			for (int i = 0; i < droids.size(); i++) {
+				rotateImage(danims.get(i).getImage(), droids.get(i)
+						.getCenterX(), droids.get(i).getCenterY(), droids
+						.get(i).getAngle(), g);
+			}
+
 			g.setFont(font);
 			g.setColor(Color.WHITE);
 			g.drawString(Integer.toString(score), 740, 30);
-		}
-		else if (state == GameState.Dead) {
+		} else if (state == GameState.Dead) {
 			g.setColor(Color.BLACK);
 			g.fillRect(0, 0, 800, 480);
 			g.setColor(Color.WHITE);
-			g.drawString("Dead", 360, 240);
+			g.drawString(Integer.toString(score), 740, 30);
+			g.drawString("Dead", 360, 200);
+			g.drawString("Enter- New Game", 300, 240);
+			g.drawString("Esc- End", 320, 280);
+			this.stop();
 
-
+		}
+		else if (state == GameState.Menu){
+			g.drawImage(menuBack, 0, 0, this);
 		}
 	}
 
@@ -156,7 +292,7 @@ public class StartingClass extends Applet implements Runnable, KeyListener,
 		second.fillRect(0, 0, getWidth(), getHeight());
 		second.setColor(getForeground());
 		paint(second);
-
+		g.setColor(Color.BLACK);
 		g.drawImage(image, 0, 0, this);
 
 	}
@@ -211,6 +347,32 @@ public class StartingClass extends Applet implements Runnable, KeyListener,
 			// System.out.println("Move right");
 			character.moveRight();
 			break;
+		case KeyEvent.VK_W:
+			// System.out.println("Move right");
+			character.moveUp();
+			break;
+		case KeyEvent.VK_S:
+			// System.out.println("Move right");
+			character.moveDown();
+			break;
+		case KeyEvent.VK_A:
+			// System.out.println("Move right");
+			character.moveLeft();
+			break;
+		case KeyEvent.VK_D:
+			// System.out.println("Move right");
+			character.moveRight();
+			break;
+		case KeyEvent.VK_ENTER:
+			if (state == GameState.Dead) {
+				state = GameState.Running;
+				this.start();
+			}
+			if (state == GameState.Menu ) {
+				this.start();
+				state = GameState.Running;
+			}
+			break;
 
 		}
 
@@ -234,6 +396,21 @@ public class StartingClass extends Applet implements Runnable, KeyListener,
 		case KeyEvent.VK_RIGHT:
 			character.stopRight();
 			break;
+		case KeyEvent.VK_W:
+			// System.out.println("stop right");
+			character.stopUp();
+			break;
+		case KeyEvent.VK_S:
+			// System.out.println("stop right");
+			character.stopDown();
+			break;
+		case KeyEvent.VK_A:
+			// System.out.println("stop right");
+			character.stopLeft();
+			break;
+		case KeyEvent.VK_D:
+			// System.out.println("stop right");
+			character.stopRight();
 
 		}
 
@@ -247,6 +424,7 @@ public class StartingClass extends Applet implements Runnable, KeyListener,
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
+
 		// TODO Auto-generated method stub
 
 	}
@@ -271,7 +449,11 @@ public class StartingClass extends Applet implements Runnable, KeyListener,
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		character.shoot();
+		if (state == GameState.Running)character.shoot();
+		else if (state == GameState.Menu && menu.onStart(e.getX(), e.getY())) {
+			this.start();
+			state = GameState.Running;
+		}
 
 	}
 
@@ -309,6 +491,31 @@ public class StartingClass extends Applet implements Runnable, KeyListener,
 
 	public void setCharacter(Character character) {
 		this.character = character;
+	}
+
+	public class Corpses {
+
+		private int x, y;
+		private double angle;
+
+		Corpses(int x, int y, double angle) {
+			this.x = x;
+			this.y = y;
+			this.angle = angle;
+		}
+
+		public int getX() {
+			return x;
+		}
+
+		public int getY() {
+			return y;
+		}
+
+		public double getAngle() {
+			return angle;
+		}
+
 	}
 
 }

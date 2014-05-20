@@ -3,65 +3,61 @@ package droidsurvival;
 import java.awt.Rectangle;
 
 public class Projectile {
-	
-	private int x, y, speedX,speedY,speed;
+
+	private int x, y, speedX, speedY, speed;
 	double angle;
 	private boolean visible;
 	private Rectangle r;
 
-	public Projectile(int startX, int startY,int pointX,int pointY) {
+	public Projectile(int startX, int startY, int pointX, int pointY) {
 		// TODO Auto-generated constructor stub
-		
+
 		r = new Rectangle(0, 0, 0, 0);
 		x = startX;
 		y = startY;
 		speed = 15;
-		angle=Angle.getAngle(x, y, pointX, pointY);
-		
-		double a=(double)speed*Math.sin(Math.toRadians(angle));
-		speedY=(int)a;
-		speedX=(int)Math.sqrt(Math.pow((double)speed, 2)-Math.pow(a, 2));
-		System.out.println(angle);		
-		
-			if(angle>90)speedX =- speedX;
-			speedY= -speedY;
-		
+		angle = Angle.getAngle(x, y, pointX, pointY);
+
+		double a = (double) speed * Math.sin(Math.toRadians(angle));
+		speedY = (int) a;
+		speedX = (int) Math.sqrt(Math.pow((double) speed, 2) - Math.pow(a, 2));
+		System.out.println(angle);
+
+		if (angle > 90)
+			speedX = -speedX;
+		speedY = -speedY;
+
 		visible = true;
 	}
-	
-	public void update(){
+
+	public void update() {
 		x += speedX;
-		if (x > 800||x<0) {
-		   visible = false;
+		if (x > 800 || x < 0) {
+			visible = false;
 		}
 		y += speedY;
-		if (y > 480||y<0) {
-		   visible = false;
+		if (y > 480 || y < 0) {
+			visible = false;
 		}
-		
+
 		r.setBounds(x, y, 10, 5);
-		
-		if (visible){
+
+		if (visible) {
 			checkCollision();
 		}
 
 	}
-	
+
+
 	private void checkCollision() {
-		if(r.intersects(StartingClass.droid.r)){
-			visible = false;
-			
-			
-			if (StartingClass.droid.health > 0) {
-				StartingClass.droid.health -= 1;
-			}
-			if (StartingClass.droid.health == 0) {
-				StartingClass.droid.setCenterX(-100);
-				StartingClass.score += 1;
-				StartingClass.droid.health += 5;
+		
+		for (int i = 0; i < StartingClass.droids.size(); i++) {
+			if (r.intersects(StartingClass.droids.get(i).r)) {
+				visible = false;
+				StartingClass.droids.get(i).health -= 1;
+
 			}
 		}
-		
 
 	}
 
@@ -120,7 +116,5 @@ public class Projectile {
 	public void setVisible(boolean visible) {
 		this.visible = visible;
 	}
-	
-
 
 }
