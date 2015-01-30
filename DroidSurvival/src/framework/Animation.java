@@ -1,4 +1,4 @@
-package drodisurvival.framework;
+package framework;
 
 import java.awt.Image;
 import java.util.ArrayList;

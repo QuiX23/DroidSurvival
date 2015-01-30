@@ -20,7 +20,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Random;
 
-import drodisurvival.framework.Animation;
+import framework.Animation;
 
 public class StartingClass extends Applet implements Runnable, KeyListener,
 		MouseListener, MouseMotionListener {
@@ -60,7 +60,7 @@ public class StartingClass extends Applet implements Runnable, KeyListener,
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		Frame frame = (Frame) this.getParent().getParent();
-		frame.setTitle("Zombie Survival");
+		//frame.setTitle("Zombie Survival1");
 
 		try {
 			base = getDocumentBase();
@@ -69,19 +69,19 @@ public class StartingClass extends Applet implements Runnable, KeyListener,
 		}
 		// test
 		// Image Setups
-		playerStand = getImage(base, "data/graczstoi.png");
-		playerLeft = getImage(base, "data/graczlewa.png");
-		playerRight = getImage(base, "data/graczprawa.png");
+		playerStand = getImage(base, "data/character.png");
+		playerLeft = getImage(base, "data/character.png");
+		playerRight = getImage(base, "data/character.png");
 
 		anim = new Animation();
 		anim.addFrame(playerStand, 50);
 		anim.addFrame(playerLeft, 50);
 		anim.addFrame(playerRight, 50);
 
-		droidRight = getImage(base, "data/zombieprawa.png");
-		droidDead = getImage(base, "data/deadzombie.png");
-		droidLeft = getImage(base, "data/zombielewa.png");
-		dd = getImage(base, "data/zombiestoi.png");
+		droidRight = getImage(base, "data/enemy.png");
+		droidDead = getImage(base, "data/enemy.png");
+		droidLeft = getImage(base, "data/enemy.png");
+		dd = getImage(base, "data/enemy.png");
 
 		danim = new Animation();
 		danim.addFrame(dd, 100);
