@@ -16,7 +16,14 @@ import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -69,19 +76,19 @@ public class StartingClass extends Applet implements Runnable, KeyListener,
 		}
 		// test
 		// Image Setups
-		playerStand = getImage(base, "data/character.png");
-		playerLeft = getImage(base, "data/character.png");
-		playerRight = getImage(base, "data/character.png");
+		playerStand = getImage(base, "data/characterStand.png");
+		playerLeft = getImage(base, "data/characterLeft.png");
+		playerRight = getImage(base, "data/characterRight.png");
 
 		anim = new Animation();
 		anim.addFrame(playerStand, 50);
 		anim.addFrame(playerLeft, 50);
 		anim.addFrame(playerRight, 50);
 
-		droidRight = getImage(base, "data/enemy.png");
-		droidDead = getImage(base, "data/enemy.png");
-		droidLeft = getImage(base, "data/enemy.png");
-		dd = getImage(base, "data/enemy.png");
+		droidRight = getImage(base, "data/zombieRight.png");
+		droidDead = getImage(base, "data/zombieDead.png");
+		droidLeft = getImage(base, "data/zombieLeft.png");
+		dd = getImage(base, "data/zombieStand.png");
 
 		danim = new Animation();
 		danim.addFrame(dd, 100);
@@ -90,13 +97,31 @@ public class StartingClass extends Applet implements Runnable, KeyListener,
 		danim.addFrame(droidLeft, 100);
 
 		background = getImage(base, "data/background.png");
-		menuBack = getImage(base, "data/menu.png");
+		menuBack = getImage(base, "data/zombies.png");
 		
 		bon = getImage(base, "data/bonus.png");
 		
 		
-
 	}
+	
+
+	
+	 private void SendData() {
+		    try {
+		    
+		    	  URL codeBase = getCodeBase();
+		    	  URL servletURL =  new URL(/*"http://localhost:8080/SurvivalWeb/survivalservlet"*/getCodeBase(), "survivalservlet");
+		    	  HttpURLConnection conn = (HttpURLConnection)servletURL.openConnection();
+		    	  conn.setDoOutput(true);
+		    	  conn.setRequestMethod("POST");
+		    	  PrintWriter out = new PrintWriter(conn.getOutputStream());
+		    	  out.println(Integer.toString(score));
+		    	  out.close();
+		    	  System.out.println(conn.getResponseCode());
+		      } catch (Exception ex) {
+		      ex.printStackTrace();
+		    }
+		  }
 
 	@Override
 	public void start() {
@@ -144,6 +169,7 @@ public class StartingClass extends Applet implements Runnable, KeyListener,
 						corpses.add(new Corpses(droids.get(i).getCenterX(),
 								droids.get(i).getCenterY(), droids.get(i)
 										.getAngle() + 180));
+						score+=1;
 						droids.remove(i);
 					}
 					droids.get(i).update(character.getCenterX(),
@@ -241,7 +267,7 @@ public class StartingClass extends Applet implements Runnable, KeyListener,
 			for (int i = 0; i < corpses.size(); i++) {
 				rotateImage(droidDead, corpses.get(i).getX(), corpses.get(i)
 						.getY(), corpses.get(i).getAngle(), g);
-				System.out.println(corpses.get(i).getAngle());
+				//System.out.println(corpses.get(i).getAngle());
 			}
 
 			rotateImage(currentSprite, character.getCenterX(),
@@ -271,8 +297,12 @@ public class StartingClass extends Applet implements Runnable, KeyListener,
 			g.setColor(Color.WHITE);
 			g.drawString(Integer.toString(score), 740, 30);
 			g.drawString("Dead", 360, 200);
-			g.drawString("Enter- New Game", 300, 240);
-			g.drawString("Esc- End", 320, 280);
+			//g.drawString("Enter- New Game", 300, 240);
+			//g.drawString("Esc- End", 320, 280);
+			SendData();
+			g.drawImage(menuBack, 0, 0, this);
+			score=0;
+			state =GameState.Menu;
 			this.stop();
 
 		}
@@ -310,8 +340,8 @@ public class StartingClass extends Applet implements Runnable, KeyListener,
 		// Rotation information
 
 		double rotationRequired = Math.toRadians(90 - angle);
-		double locationX = bimage.getWidth() / 2;
-		double locationY = bimage.getHeight() / 2;
+		double locationX = (bimage.getWidth() / 2);
+		double locationY = (bimage.getHeight() / 2);
 		AffineTransform tx = AffineTransform.getRotateInstance(
 				rotationRequired, locationX, locationY);
 		AffineTransformOp op = new AffineTransformOp(tx,
